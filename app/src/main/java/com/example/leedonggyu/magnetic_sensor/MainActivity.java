@@ -79,17 +79,11 @@ public class MainActivity extends AppCompatActivity {
                             accRunning=true;
                         }
                         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) { // 가속도 센서 값 가져오기 ( 마그네틱 센서 보완 용으로 가속도 센서 사용 중 )
-//                            mGravity[0] = alpha * mGravity[0] + (1 - alpha) * sensorEvent.values[0];
-//                            mGravity[1] = alpha * mGravity[1] + (1 - alpha) * sensorEvent.values[1];
-//                            mGravity[2] = alpha * mGravity[2] + (1 - alpha) * sensorEvent.values[2];
                             mGravity[0] = sensorEvent.values[0];
                             mGravity[1] = sensorEvent.values[1];
                             mGravity[2] = sensorEvent.values[2];
                         }
                         if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) { // 마그네틱 센서 값 가져오기
-//                            mGeomagnetic[0] = alpha * mGeomagnetic[0] + (1 - alpha) * sensorEvent.values[0];
-//                            mGeomagnetic[1] = alpha * mGeomagnetic[1] + (1 - alpha) * sensorEvent.values[1];
-//                            mGeomagnetic[2] = alpha * mGeomagnetic[2] + (1 - alpha) * sensorEvent.values[2];
                             mGeomagnetic[0] = sensorEvent.values[0];
                             mGeomagnetic[1] = sensorEvent.values[1];
                             mGeomagnetic[2] = sensorEvent.values[2];
@@ -117,10 +111,9 @@ public class MainActivity extends AppCompatActivity {
                             gyroRunning=true;
                         }
 
-                        mLowPassY = lowPass((float)gyroY,mLowPassY);
-                        /* 하이패스 필터*/
-                        mHighPassY = highPass(mLowPassY,mLastY,mHighPassY);
-                        mLastY = mLowPassY;
+       //                 mLowPassY = lowPass((float)gyroY,mLowPassY);
+                        mHighPassY = highPass((float)gyroY,mLastY,mHighPassY);
+                        mLastY = mHighPassY;
 
                         /* 단위시간 계산 */
                         dt = (sensorEvent.timestamp - timestamp) * NS2S;
@@ -128,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
                         /* 시간이 변화했으면 */
                         if (dt - timestamp * NS2S != 0) {
-                            pitch = pitch + gyroY * dt; // 자이로에서 pitch 값 가져오기 (각속도 적분해서 회전각 구하기)
+                            pitch = pitch + mHighPassY * dt; // 자이로에서 pitch 값 가져오기 (각속도 적분해서 회전각 구하기)
                             text = -(pitch * rad_to_dgr) % 360; // 자이로는 반시계로 돌릴 때 값이 양수로 증가, 시계는 음수로 증가, 나침반이라 반대라서 부호 바꿔줌
 
                             first_x.setText("마그네틱 센서로 찾은 각도 : "+String.format("%f",x));
@@ -160,6 +153,10 @@ public class MainActivity extends AppCompatActivity {
         return (float)(0.1*(filtered+current-last));
     }
 
+//    float highPass(float y){
+//        mGravity[1] = (float)(0.8*mGravity[1]+0.2*y);
+//        return (float)(y-mGravity[1]);
+//    }
     private void complementary(double new_ts){
 
         double mAccPitch;
